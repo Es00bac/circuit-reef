@@ -1,0 +1,14 @@
+Internal ctest changing into directory: /mnt/data/circuit-reef-build
+Test project /mnt/data/circuit-reef-build
+    Start 1: reef-core-tests
+1/4 Test #1: reef-core-tests ..................   Passed    1.43 sec
+    Start 2: reef-native-smoke
+2/4 Test #2: reef-native-smoke ................   Passed    0.32 sec
+    Start 3: reef-headless-smoke
+3/4 Test #3: reef-headless-smoke ..............   Passed    0.11 sec
+    Start 4: reef-invalid-input
+4/4 Test #4: reef-invalid-input ...............   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   1.88 sec

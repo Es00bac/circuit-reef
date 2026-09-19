@@ -1,0 +1,2 @@
+Circuit Reef seed=2026, driver=x11, desktop blanking allowed=1
+Presented 76 frames in 3.06699 s (24.78 fps average).

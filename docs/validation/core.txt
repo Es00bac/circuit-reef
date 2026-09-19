@@ -1,0 +1,2 @@
+Peak triangle stream: 370275 vertices.
+31446134 checks passed; 48 seeded one-hour pose sweeps, continuous turns, telemetry parsers, 3 palettes, 4 aspect ratios.

@@ -1,0 +1,7 @@
+--fullscreen --private: Escape dismissed in 1.80 seconds including launch delay.
+Circuit Reef seed=529945504189883535, driver=x11, desktop blanking allowed=1
+Presented 28 frames in 1.30118 s (21.5189 fps average).
+
+--windowed --raster: Escape dismissed in 1.66 seconds including launch delay.
+Circuit Reef seed=1481777164052065992, driver=x11, desktop blanking allowed=1
+Presented 39 frames in 1.58197 s (24.6527 fps average).
