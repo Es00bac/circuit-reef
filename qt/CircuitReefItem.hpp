@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include <QQuickPaintedItem>
+#include <QtQmlIntegration>
 #include <QElapsedTimer>
 #include <QImage>
 #include <QTimer>
@@ -11,6 +12,10 @@
 // the accelerated DrawList backend. This adapter is for embedding in a host.
 class CircuitReefItem : public QQuickPaintedItem {
  Q_OBJECT
+ // Registered as QindaQt.CircuitReef/CircuitReef by the qt_add_qml_module
+ // target, so a host that never links this library -- the screen locker's
+ // greeter -- can import the scene from QML alone.
+ QML_NAMED_ELEMENT(CircuitReef)
  Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged)
  Q_PROPERTY(bool privateMetrics READ privateMetrics WRITE setPrivateMetrics NOTIFY privateMetricsChanged)
  Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY reducedMotionChanged)
