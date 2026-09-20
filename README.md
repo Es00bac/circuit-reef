@@ -1,4 +1,12 @@
 # Circuit Reef
+
+
+## 1.1.0 refinement
+
+The aquarium now includes two sharks, two octopi with eight articulated arms, two rays, a turtle, and two seahorses, alongside the koi, puffer, and jellyfish. Continuous paths take the inhabitants beyond the glass; jellyfish propel themselves through the water and rising bubbles have translucent rims and highlights. Fullscreen now uses output-bound LayerShellQt windows and the existing vector triangle stream on OpenGL.
+
+`--fullscreen` and `--screensaver` cover every connected output by default. `--screen N` selects one; `--list-screens` shows names, geometry, and scale. Wayland uses LayerShellQt output binding, with independent framebuffers, mixed-scale support, portrait framing, and live output removal/reconnection. `--capture-dir DIR` saves one native PNG per output. SDL remains the preview and offline-capture backend. Build from the suite tree with the adjacent `common/` directory, Qt 6 Gui, LayerShellQt, SDL2, Cairo, and OpenGL development packages installed.
+
 ## Kind of Quiet, for QindaQt
 
 A procedural cyberpunk aquarium, written in C++20. This is a different screensaver from Qinda Patrol: no platforming, enemies, scoring, or gameplay. Mechanical koi glide through a submerged circuit garden, jellyfish breathe and drift, and a little QQ-eyed maintenance puffer inspects the reef.
@@ -25,12 +33,12 @@ From the extracted `circuit-reef` directory:
 
 ```sh
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --parallel
+ninja -C build $(portageq envvar MAKEOPTS)
 ctest --test-dir build --output-on-failure
 ./build/circuit-reef --windowed
 ```
 
-Start fullscreen on the current display:
+Start fullscreen on every display:
 
 ```sh
 ./build/circuit-reef --fullscreen
@@ -42,7 +50,7 @@ Start on every connected display:
 ./build/circuit-reef --all-screens
 ```
 
-A separate seeded aquarium is created per output. There is no stretched image spanning several monitors. A display topology change causes the standalone application to exit so the desktop can relaunch it for the new output layout.
+A separate seeded aquarium is created per output. There is no stretched image spanning several monitors. Fullscreen output windows are added and removed live when displays change.
 
 For a quiet, private setup:
 
@@ -161,7 +169,7 @@ A complete optional `CircuitReefItem` adapter and small preview executable are u
 
 ```sh
 cmake -S . -B build-qt -G Ninja -DCMAKE_BUILD_TYPE=Release -DREEF_BUILD_QT=ON
-cmake --build build-qt --parallel
+ninja -C build-qt $(portageq envvar MAKEOPTS)
 ./build-qt/qt/circuit-reef-qt-preview
 ```
 

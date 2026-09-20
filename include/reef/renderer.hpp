@@ -12,6 +12,7 @@ public:
  void exportAssets(const std::string& directory);
  void fishArt(Canvas& c,const FishPose& pose,int style,double alpha=1)const;
  void jellyArt(Canvas& c,double x,double y,double size,double time,int style)const;
+ void creatureArt(Canvas&,const FishPose&,Species,double alpha=1)const;
  void pufferArt(Canvas& c,double x,double y,double time,double size=1)const;
  const World& world()const{return world_;}
 private:

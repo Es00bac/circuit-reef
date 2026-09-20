@@ -47,11 +47,11 @@ Both native and reference paths share scene and articulation code. Their tessell
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --parallel
+ninja -C build $(portageq envvar MAKEOPTS)
 ctest --test-dir build --output-on-failure
 
 cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DREEF_SANITIZERS=ON
-cmake --build build-asan --parallel
+ninja -C build-asan $(portageq envvar MAKEOPTS)
 ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
   ctest --test-dir build-asan --output-on-failure
 ```

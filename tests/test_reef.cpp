@@ -27,7 +27,7 @@ int main(){try{
     double t=step*5.0;auto p=a.fishPose(i,t),q=b.fishPose(i,t);
     require(near(p.p.x,q.p.x)&&near(p.p.y,q.p.y)&&near(p.yaw,q.yaw),"seed determinism");
     require(std::isfinite(p.p.x)&&std::isfinite(p.p.y)&&std::isfinite(p.yaw)&&p.scale>.2,"finite positive poses");
-    require(p.p.x>-300&&p.p.x<1900&&p.p.y>0&&p.p.y<850,"fish stay in aquarium bounds");
+    require(p.p.x>-400&&p.p.x<2000&&p.p.y>0&&p.p.y<850,"fish excursions stay in bounded offscreen lanes");
     auto n=a.fishPose(i,t+.001),before=a.fishPose(i,std::max(0.0,t-.001));
     double speed=std::hypot(n.p.x-p.p.x,n.p.y-p.p.y)/.001;
     double turn=std::abs(std::remainder(n.yaw-p.yaw,tau))/.001;
@@ -37,6 +37,9 @@ int main(){try{
   }
  }
  World w(7);
+ require(w.creatures.size()==9,"sharks, octopi, rays, turtle and seahorses present");
+ for(std::size_t i=0;i<w.creatures.size();++i){bool off=false,on=false;for(int step=0;step<600;++step){auto p=w.creaturePose(i,step);require(std::isfinite(p.p.x)&&p.scale>0,"finite creature rig");off|=p.p.x<0||p.p.x>1600;on|=p.p.x>200&&p.p.x<1400;}require(off&&on,"creatures cross the visible boundary");}
+ for(std::size_t i=0;i<w.jellies.size();++i){auto a=w.jellyPose(i,0),b=w.jellyPose(i,90);require(std::hypot(a.x-b.x,a.y-b.y)>100,"jellies propel through the aquarium");}
  for(int j=0;j<=100;j++)for(int k=0;k<30;k++){
   double u=j/100.0,a=k*tau/30;auto p=w.fishLocal(u,a,1),q=w.fishLocal(u,a,1+tau);
   require(length(p-q)<1e-8,"mesh deformation has a continuous cycle");

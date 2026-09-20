@@ -106,6 +106,15 @@ void Renderer::water(Canvas& c,double t,bool front)const{
   if(front&&i%4==0)c.glow(x,y,8,col.alpha(.4));
   c.ellipse(x,y,radius,radius,col);
  }
+ // Air escapes from vents in loose columns, with refraction rims and specular glints.
+ for(int i=0;i<(front?22:28);++i){
+  double phase=i*73.91,velocity=18+(i%7)*3.4;
+  double y=1000-std::fmod(t*velocity+phase,1160.0);
+  double x=((i%5)*329+80)*layout_+22*std::sin(t*.42+i)+9*std::sin(y*.028+i);
+  double radius=2.5+(i%5)*1.35;double a=smooth((y+100)/80)*smooth((980-y)/80)*(front?.46:.23);
+  c.ellipse(x,y,radius,radius,p_.water.alpha(a*.2));c.ring(x,y,radius,p_.glow.alpha(a),.85);
+  c.path();c.arc(x-1,y-1,radius*.67,pi*1.06,pi*1.55);c.stroke(rgb(0xe9ffff,a*.95),1.2);
+ }
  if(!front){
   // Slowly moving surface caustics, not a rapidly flashing overlay.
   for(int i=0;i<9;i++){
@@ -211,6 +220,62 @@ void Renderer::fishArt(Canvas& c,const FishPose& f,int style,double opacity)cons
  auto nose=project(transform({63,0,std::sin(f.phase)*.2}));c.ellipse(nose.x,nose.y,1.5,1.2,neon.alpha(.75*opacity));
  c.restore();
 }
+
+void Renderer::creatureArt(Canvas& c,const FishPose& pose,Species species,double opacity)const{
+ c.save();c.translate(pose.p.x,pose.p.y);c.scale(pose.scale,pose.scale);c.rotate(pose.pitch);
+ double facing=std::cos(pose.yaw),t=pose.phase;
+ c.scale(facing,1);const Color mint=p_.glow.alpha(opacity),gold=p_.gold.alpha(opacity),pink=p_.pink.alpha(opacity);
+ if(species==Species::Shark){
+  double tail=std::sin(t)*19;
+  // A muscular silhouette with a forked caudal fin and separate paired fins.
+  c.path();c.move(-104,2);c.curve(-136,-11,-155,-55+tail,-159,-65+tail);c.curve(-130,-53,-117,-20,-101,-4);c.curve(-134,30,-139,39+tail,-152,41+tail);c.curve(-132,10,-120,3,-104,2);c.close();c.fill(rgb(0x377184,opacity));
+  c.path();c.move(-34,-24);c.curve(-22,-46,-15,-72,0,-76);c.curve(5,-45,24,-25,34,-20);c.close();c.linear(0,-76,0,-20,rgb(0x528da0,opacity),rgb(0x204854,opacity));
+  c.path();c.move(36,12);c.curve(5,40,-14,64,-47,71);c.curve(-35,41,-20,20,-7,10);c.close();c.fill(rgb(0x225260,opacity));
+  c.path();c.move(123,-4);c.curve(104,-26,60,-33,7,-32);c.curve(-38,-32,-80,-12,-109,1);c.curve(-60,12,-39,25,3,28);c.curve(61,34,106,22,123,-4);c.close();c.linear(0,-36,0,34,rgb(0x689da9,opacity),rgb(0x1e414f,opacity));
+  c.path();c.move(121,1);c.curve(81,11,54,20,-29,15);c.curve(-8,31,78,38,112,14);c.close();c.fill(rgb(0xc3d6cc,opacity*.85));
+  c.path();c.move(21,14);c.curve(4,41,-25,59,-61,65);c.curve(-33,33,-22,9,0,2);c.close();c.linear(0,6,-40,63,rgb(0x548c9a,opacity),rgb(0x1c4456,opacity));
+  for(int k=0;k<5;k++){double x=46-k*8;c.path();c.move(x,-15);c.curve(x-6,-8,x-6,0,x-3,6);c.stroke(p_.deep.alpha(opacity*.8),1.6);}
+  c.ellipse(90,-10,6.2,5.2,p_.deep.alpha(opacity));c.ellipse(91,-10,3.4,3.3,gold);c.ellipse(92,-11,1.3,1.3,rgb(0xffffff,opacity));
+  c.path();c.move(97,11);c.curve(105,10,113,5,116,2);c.stroke(p_.deep.alpha(opacity),1.5);
+  c.path();c.move(-84,-3);c.curve(-29,-21,36,-25,77,-18);c.stroke(mint.alpha(.30),1.1);
+ }else if(species==Species::Octopus){
+  // Eight independently phased arms with decreasing thickness and suction cups.
+  for(int j=0;j<8;j++){
+   double side=(j-3.5)/3.5,root=side*26,prevX=root,prevY=20;
+   Color arm=blend(p_.pink,rgb(0x874d86),.45+.04*j).alpha(opacity);
+   for(int k=1;k<=26;k++){
+    double u=k/26.,curl=t-u*5.8+j*.63;
+    double x=root+side*73*u+std::sin(curl)*u*28,y=20+u*(85-23*std::abs(side))+std::cos(curl)*u*18;
+    c.path();c.move(prevX,prevY);c.line(x,y);c.stroke(arm,12*(1-u)+1.7);
+    if(k%3==0)c.ellipse(x-1,y-1,2.3*(1-u)+.6,1.6*(1-u)+.5,gold.alpha(.65));prevX=x;prevY=y;
+   }
+  }
+  double pulse=1+.025*std::sin(t*2);c.save();c.scale(pulse,1/pulse);
+  c.path();c.move(-31,30);c.curve(-69,-14,-47,-79,0,-82);c.curve(49,-81,67,-11,30,31);c.curve(11,44,-12,42,-31,30);c.close();c.linear(-30,-65,26,40,rgb(0xd48cac,opacity),rgb(0x703d74,opacity));
+  for(int j=0;j<12;j++){double a=j*2.4,r=15+j*1.6;c.ellipse(std::cos(a)*r,-32+std::sin(a)*r,3,2,pink.alpha(.28));}
+  for(int side:{-1,1}){double xx=side*19;c.ellipse(xx,3,12,15,rgb(0xf5dbbe,opacity));c.ellipse(xx+3,5,6,9,p_.deep.alpha(opacity));c.ellipse(xx+4,1,2.4,3,rgb(0xffffff,opacity));}
+  c.path();c.move(-5,23);c.curve(-2,27,2,27,6,22);c.stroke(p_.deep.alpha(opacity*.6),1.5);c.restore();
+ }else if(species==Species::Ray){
+  double flap=std::sin(t)*27;
+  c.path();c.move(49,-6);c.curve(19,-19,-15,-59,-59,-91+flap);c.curve(-50,-41,-119,-38,-62,2);c.curve(-28,24,-34,80-flap,6,73-flap);c.curve(14,35,19,13,49,-6);c.close();c.linear(-70,-65,25,51,rgb(0x50669a,opacity),rgb(0x233951,opacity));
+  c.path();c.move(-46,0);c.curve(-79,10,-121,16,-151,9+std::sin(t-2)*18);c.stroke(p_.pink.alpha(opacity*.65),3);
+  c.ellipse(12,-2,33,14,rgb(0x58798d,opacity));for(int side:{-1,1}){c.ellipse(32,side*6,3,3,gold);}
+  for(int j=0;j<19;j++){double a=j*2.4;c.ellipse(-20+std::cos(a)*28,std::sin(a)*40,2,1.7,mint.alpha(.35));}
+ }else if(species==Species::Turtle){
+  for(int side:{-1,1})for(int k=0;k<2;k++){double x=k?32:-36,yy=side*22,fin=std::sin(t*1.3+k)*12;c.path();c.move(x,yy);c.curve(x-15,yy+side*40,x-45,yy+side*(40+fin),x-30,yy+side*12);c.close();c.fill(rgb(0x6b9b83,opacity));}
+  c.ellipse(62,0,25,17,rgb(0x9abb85,opacity));c.ellipse(72,-5,4,4,p_.deep.alpha(opacity));c.ellipse(73,-6,1.5,1.5,rgb(0xffffff,opacity));
+  c.ellipse(-1,0,61,39,rgb(0x284e51,opacity));c.ellipse(0,-3,54,32,rgb(0x659076,opacity));
+  for(int j=0;j<7;j++){double a=j*tau/6,x=j==6?0:32*std::cos(a),y=j==6?-3:19*std::sin(a)-3;c.path();for(int k=0;k<6;k++){double aa=k*tau/6;if(k==0)c.move(x+15*std::cos(aa),y+11*std::sin(aa));else c.line(x+15*std::cos(aa),y+11*std::sin(aa));}c.close();c.fill(rgb(j%2?0x3b6e5e:0x4c7c63,opacity));}
+ }else{
+  c.path();c.move(-4,35);for(int k=0;k<45;k++){double a=k*.12,r=21*(1-k/50.);c.line(-8+std::sin(a)*r,51-std::cos(a)*r);}c.stroke(gold,7);
+  c.path();c.move(-5,37);c.curve(38,20,13,-12,7,-34);c.curve(32,-44,33,-65,12,-71);c.curve(-15,-76,-20,-55,-11,-45);c.curve(-25,-14,-24,5,-5,37);c.close();c.linear(-19,-65,19,31,gold,p_.pink.alpha(opacity));
+  c.roundRect(13,-60,28,8,4,gold);c.ellipse(9,-59,4,4,p_.deep.alpha(opacity));c.ellipse(10,-60,1.6,1.6,rgb(0xffffff,opacity));
+  for(int k=0;k<8;k++){double yy=-27+k*8;c.path();c.move(-16,yy);c.line(3+(k<4?k:8-k)*2,yy+3);c.stroke(p_.deep.alpha(opacity*.2),1.2);}
+  c.path();c.move(-17,-20);c.line(-40,-5+std::sin(t*4)*5);c.line(-19,16);c.close();c.fill(mint.alpha(.32));
+ }
+ c.restore();
+}
+
 void Renderer::jellyArt(Canvas& c,double x,double y,double size,double t,int style)const{
  c.save();c.translate(x,y);c.scale(size,size);
  const Color col=style?p_.pink:p_.glow;double phase=t*1.65;double pulse=std::sin(phase);double R=49*(1-.10*pulse),H=44*(1+.11*pulse);
@@ -326,13 +391,15 @@ void Renderer::drawScene(Canvas& c,double time,const Metrics& metrics,const Rend
  double t=time*(opt.reducedMotion?.40:1.0);
  water(c,t,false);
  for(std::size_t i=0;i<world_.plants.size();i++)if(i%3==0&&world_.plants[i].type!=3)plant(c,world_.plants[i],t,false);
- struct Actor{double depth;int type;std::size_t index;};std::vector<Actor> actors;actors.reserve(world_.fish.size()+world_.jellies.size());
+ struct Actor{double depth;int type;std::size_t index;};std::vector<Actor> actors;actors.reserve(world_.fish.size()+world_.jellies.size()+world_.creatures.size());
  for(std::size_t i=0;i<world_.fish.size();i++)actors.push_back({world_.fishPose(i,t).depth,0,i});
  for(std::size_t i=0;i<world_.jellies.size();i++)actors.push_back({-60+std::sin(t*.05+world_.jellies[i].phase)*140,1,i});
+ for(std::size_t i=0;i<world_.creatures.size();++i)actors.push_back({world_.creaturePose(i,t).depth,2,i});
  std::stable_sort(actors.begin(),actors.end(),[](const Actor&a,const Actor&b){return a.depth<b.depth;});
  for(auto a:actors){
   if(a.type==0){auto pose=world_.fishPose(a.index,t);pose.p.x*=layout_;fishArt(c,pose,world_.fish[a.index].style,.84+clamp((pose.depth+350)/700)*.16);}
-  else{const auto& j=world_.jellies[a.index];double x=(j.cx+76*std::sin(t*j.speed+j.phase))*layout_,y=j.cy+41*std::sin(t*j.speed*.8+j.phase);jellyArt(c,x,y,j.size,t+j.phase*3,j.style);}
+  else if(a.type==1){const auto& j=world_.jellies[a.index];auto pos=world_.jellyPose(a.index,t);jellyArt(c,pos.x*layout_,pos.y,j.size,t+j.phase*3,j.style);}
+  else{auto pose=world_.creaturePose(a.index,t);pose.p.x*=layout_;creatureArt(c,pose,world_.creatures[a.index].species,.68+clamp((pose.depth+300)/600)*.3);}
  }
  pufferArt(c,(230+130*std::sin(t*.065))*layout_,655+35*std::sin(t*.16),t,.78);
  if(opt.metrics)instruments(c,time,metrics);
@@ -376,6 +443,7 @@ void Renderer::exportAssets(const std::string& directory){
   for(int i=0;i<24;i++){c.save();c.translate((i%8)*192,(i/8)*256);jellyArt(c,96,65,1.0,i*(tau/1.65)/24,style);c.restore();}
   sheet.png((fs::path(directory)/("jelly-"+std::to_string(style)+"-pulse-24.png")).string());
  }
+ for(int kind=0;kind<5;++kind)asset("creature-"+std::to_string(kind),420,300,[&](Canvas& c){creatureArt(c,{{240,145},0,0,1.15,.8,0},Species(kind));});
  asset("qq-puffer",220,200,[&](Canvas&c){pufferArt(c,110,112,.3,1.25);});
  for(int type=0;type<4;type++)asset("coral-"+std::to_string(type),256,300,[&](Canvas&c){plant(c,{128,295,225,70,.3,type},.3,true);});
  asset("aquascape-"+p_.name,1600,900,[&](Canvas&c){background(c);});

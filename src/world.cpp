@@ -13,11 +13,12 @@ World::World(std::uint64_t s,int density):seed(s){
  for(int i=0;i<density;i++){
   // Spatially layered lanes, not sprites reflecting instantly at an edge.
   const double row=double(i%4)/3;
-  fish.push_back({800+r.between(-200,200),225+row*320+r.between(-35,35),r.between(340,600),r.between(22,65),r.between(210,380),r.between(.037,.069),r.between(0,tau),r.between(.72,1.24),r.between(0,tau),i%3});
+  fish.push_back({800+r.between(-45,45),225+row*320+r.between(-35,35),r.between(1030,1100),r.between(22,65),r.between(210,380),r.between(.024,.041),r.between(0,tau),r.between(.72,1.24),r.between(0,tau),i%3});
  }
  // One hero fish plus smaller, distant inhabitants.
  if(!fish.empty())fish[0]={835,411,405,65,285,.053,2.5,1.65,.8,0};
  for(int i=0;i<4;i++)jellies.push_back({330.0+i*330.0,160.0+(i%2)*180.0,r.between(.7,1.28),r.between(0,tau),r.between(.045,.075),i%2});
+ for(int i=0;i<9;i++)creatures.push_back({i<2?Species::Shark:i<4?Species::Octopus:i<6?Species::Ray:i==6?Species::Turtle:Species::Seahorse,r.between(0,tau),r.between(.014,.024),r.between(.65,1.05),r.between(-200,230)});
  for(int i=0;i<54;i++){
   double x=r.between(-60,1660); double edge=std::abs(x-800)/800;
   plants.push_back({x,r.between(816,938),r.between(45,150)+edge*75,r.between(20,60),r.between(0,tau),i%4});
@@ -31,6 +32,17 @@ FishPose World::fishPose(std::size_t i,double t)const{
  const double dx=f.rx*f.omega*std::cos(a), dz=-f.rz*f.omega*std::sin(a);
  const double dy=2*f.ry*f.omega*std::cos(2*a+.8)+1.56*std::cos(t*.13+f.phase);
  return{{x,y-z*.10},z,std::atan2(dz,dx),f.size*(.82+.18*(z/f.rz)),t*(2.0+f.omega*10)+f.tailPhase,clamp(dy/std::hypot(dx,dz),-.22,.22)};
+}
+Vec2 World::jellyPose(std::size_t i,double t)const {
+ const auto& j=jellies.at(i);double a=t*j.speed*.46+j.phase;
+ // Pulsed propulsion rides a slow current; complete turns happen beyond the glass.
+ return {800+1060*std::sin(a),220+i*61+102*std::sin(a*.83+j.phase)-7*std::sin(t*1.65+j.phase)};
+}
+FishPose World::creaturePose(std::size_t i,double t)const {
+ const auto& c=creatures.at(i);double a=t*c.speed+c.phase;
+ double z=c.depth+115*std::cos(a),dx=1110*c.speed*std::cos(a),dz=-290*c.speed*std::sin(a);
+ double y=c.species==Species::Octopus?590:c.species==Species::Shark?240:c.species==Species::Ray?460:c.species==Species::Turtle?360:610;
+ return {{800+1110*std::sin(a),y+74*std::sin(a*1.4+c.phase)},z,std::atan2(dz,dx),c.size*(.90+z*.0003),t*(c.species==Species::Shark?1.7:1.1)+c.phase,.05*std::sin(a*1.4)};
 }
 Vec3 World::fishLocal(double u,double a,double phase)const{
  // Tapered ellipsoid with a traveling lateral wave; head displacement is tiny.
