@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 cmake_minimum_required(VERSION 3.20)
-project(CircuitReef VERSION 1.0.0 LANGUAGES CXX)
+project(CircuitReef VERSION 1.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -10,6 +10,7 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig QUIET)
 option(REEF_SANITIZERS "Address and undefined-behavior sanitizers" OFF)
 option(REEF_BUILD_QT "Build the optional Qt 6 Quick embedding library" OFF)
+option(REEF_BUILD_QML_MODULE "Install the QindaQt.CircuitReef QML module" OFF)
 if(PkgConfig_FOUND)
   pkg_check_modules(CAIRO QUIET IMPORTED_TARGET cairo)
   pkg_check_modules(SDL2 QUIET IMPORTED_TARGET sdl2>=2.0.18)
@@ -63,3 +64,8 @@ install(FILES assets/icon.svg DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor
 install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/circuit-reef)
 
 install(FILES README.md LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/circuit-reef)
+
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui)
+find_package(LayerShellQt REQUIRED)
+target_include_directories(circuit-reef PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+target_link_libraries(circuit-reef PRIVATE Qt6::Core Qt6::Gui LayerShellQt::Interface)

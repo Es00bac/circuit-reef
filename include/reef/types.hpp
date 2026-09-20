@@ -25,11 +25,16 @@ struct Rng {std::uint64_t state; explicit Rng(std::uint64_t s):state(s){} std::u
 struct Fish {double cx,cy,rx,ry,rz,omega,phase,size,tailPhase; int style;};
 struct FishPose {Vec2 p;double depth,yaw,scale,phase,pitch;};
 struct Jelly {double cx,cy,size,phase,speed;int style;};
+enum class Species { Shark, Octopus, Ray, Turtle, Seahorse };
+struct Creature { Species species; double phase, speed, size, depth; };
 struct Plant {double x,y,height,width,phase;int type;};
 class World {
 public:
  explicit World(std::uint64_t seed=2026,int density=10);
  FishPose fishPose(std::size_t i,double time)const;
+ FishPose creaturePose(std::size_t i,double time)const;
+ Vec2 jellyPose(std::size_t i,double time)const;
+ std::vector<Creature> creatures;
  Vec3 fishLocal(double u,double angle,double time)const;
  std::vector<Fish> fish; std::vector<Jelly> jellies; std::vector<Plant> plants;
  std::uint64_t seed;

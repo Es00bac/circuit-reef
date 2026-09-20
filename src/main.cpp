@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "reef/renderer.hpp"
+#include "qt_display.hpp"
+#include "native_renderer.hpp"
 #ifdef REEF_SDL_SYSTEM_HEADERS
 #include <SDL.h>
 #else
@@ -21,11 +23,12 @@ using namespace reef;
 volatile std::sig_atomic_t stopping=0;
 void signalHandler(int){stopping=1;}
 struct Options {
+ bool screenSet=false,listScreens=false;
  bool fullscreen=false,all=false,privateMode=false,demo=false,help=false,eco=false,raster=false;
  int screen=0,fps=60,width=1600,height=900,density=10,frames=0;
  double start=0,duration=24,quitAfter=0;
  std::uint64_t seed=0;bool seedSet=false;
- std::string scheme="lagoon",quality="balanced",interface,snapshot,raw,assets,capture;
+ std::string scheme="lagoon",quality="balanced",interface,snapshot,raw,assets,capture,captureDir;
  RenderOptions render;
 };
 int integer(const std::string&s,int low,int high){int v{};auto [p,e]=std::from_chars(s.data(),s.data()+s.size(),v);if(e!=std::errc{}||p!=s.data()+s.size()||v<low||v>high)throw std::invalid_argument("Out-of-range integer: "+s);return v;}
@@ -35,10 +38,12 @@ Options options(int argc,char**argv){
  for(int i=1;i<argc;i++){
   std::string a=argv[i];auto take=[&](){if(++i>=argc)throw std::invalid_argument("Missing value for "+a);return std::string(argv[i]);};
   if(a=="--help"||a=="-h")o.help=true;
-  else if(a=="--fullscreen")o.fullscreen=true;
+  else if(a=="--fullscreen"||a=="--screensaver")o.fullscreen=true;
+  else if(a=="--capture-dir")o.captureDir=take();
+  else if(a=="--list-screens")o.listScreens=true;
   else if(a=="--windowed")o.fullscreen=false;
   else if(a=="--all-screens"){o.all=true;o.fullscreen=true;}
-  else if(a=="--screen")o.screen=integer(take(),0,63);
+  else if(a=="--screen"){o.screen=integer(take(),0,63);o.screenSet=true;}
   else if(a=="--private")o.privateMode=true;
   else if(a=="--no-metrics")o.render.metrics=false;
   else if(a=="--no-branding")o.render.branding=false;
@@ -76,7 +81,10 @@ C++20 procedural cyberpunk aquarium. Visual screensaver, NOT a session lock.
 
   --windowed                 Preview window (default); Esc closes
   --fullscreen               Screensaver; input dismisses after 1 s grace
-  --all-screens              Fullscreen on all currently connected displays
+  --all-screens              Fullscreen on all displays, with hotplug
+  --screensaver              Alias for --fullscreen (all monitors by default)
+  --capture-dir DIR          Save a PNG from each native fullscreen output
+  --list-screens              List monitor names, geometry and scale
   --screen N                 Select a display, starting at zero
   --seed N                   Reproducible ecology; random seed by default
   --palette lagoon|amethyst|ember
@@ -249,6 +257,15 @@ int main(int argc,char**argv){
     }
    }
    return 0;
+  }
+  if(o.fullscreen||o.listScreens){
+   std::unique_ptr<Monitor> monitor;if(!o.privateMode&&!o.demo)monitor=std::make_unique<Monitor>(o.interface);
+   Metrics readings;double scene=o.start;
+   saver::Presentation presentation;presentation.title="QindaQt / Circuit Reef";presentation.screen=o.screenSet?o.screen:-1;presentation.fps=o.fps;presentation.duration=o.quitAfter;presentation.list=o.listScreens;presentation.captureDir=o.captureDir;
+   int cap=o.eco?720:o.quality=="balanced"?900:o.quality=="high"?1440:8192;
+   return saver::run(argc,argv,presentation,[&](QScreen* output,int index){auto seed=o.seed+std::uint64_t(index)*0x9e3779b97f4a7c15ULL;
+     return std::make_unique<saver::GLWindow<NativeRenderer>>(output,[&,seed](int w,int h){return std::make_unique<NativeRenderer>(w,h,seed,o.scheme,o.density,cap);},[&](NativeRenderer& r){r.draw(scene,readings,o.render);});},
+     [&](double dt){scene+=dt;if(monitor)readings=monitor->snapshot();else if(o.demo)readings=demoMetrics(scene);else readings.privateMode=true;},[]{return stopping!=0;});
   }
   return native(o);
  }catch(const std::exception&e){std::cerr<<"Circuit Reef: "<<e.what()<<"\nTry --help.\n";return 1;}
