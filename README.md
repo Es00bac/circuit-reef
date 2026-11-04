@@ -1,4 +1,18 @@
 # Circuit Reef
+## Screenshots
+
+Frames from the native procedural aquarium. Click a preview to inspect the full-size image.
+
+[![Native aquarium window](previews/native-x11.png)](previews/native-x11.png)
+
+Native aquarium window.
+
+| Amethyst palette | Lagoon palette |
+| --- | --- |
+| [![Amethyst palette](previews/palette-amethyst.png)](previews/palette-amethyst.png) | [![Lagoon palette](previews/palette-lagoon.png)](previews/palette-lagoon.png) |
+
+[Capture notes](docs/screenshots/README.md).
+
 ## Kind of Quiet, for QindaQt
 
 A procedural cyberpunk aquarium, written in C++20. This is a different screensaver from Qinda Patrol: no platforming, enemies, scoring, or gameplay. Mechanical koi glide through a submerged circuit garden, jellyfish breathe and drift, and a little QQ-eyed maintenance puffer inspects the reef.
